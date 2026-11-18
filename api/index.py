@@ -3,7 +3,7 @@ from fastapi.responses import StreamingResponse
 import httpx
 
 app = FastAPI()
-UPSTREAM = "https://inferenceport.ai"
+UPSTREAM = "https://api.inferenceport.ai"
 
 @app.api_route("/v1/{path:path}", methods=["GET", "POST"])
 async def proxy(path: str, request: Request):
