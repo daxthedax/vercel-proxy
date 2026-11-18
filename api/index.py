@@ -8,23 +8,20 @@ app = FastAPI(redirect_slashes=False)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=False, # MUST be False for local files
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-UPSTREAM = "https://api.inferenceport.ai"
+UPSTREAM = "https://api.wavespeed.ai/api/v3"
+API_KEY = "wsk_live_wCnpzF9ESYtLd2aTOPRpeIXyfCGZ0PLvWIpBOm4OuZ8"
 
-@app.get("/")
-async def root():
-    return {"status": "Proxy is running successfully!", "test_url": "/v1/models"}
-
-@app.api_route("/v1/{path:path}", methods=["GET", "POST", "OPTIONS"])
+@app.api_route("/{path:path}", methods=["GET", "POST", "OPTIONS"])
 async def proxy(path: str, request: Request):
     if request.method == "OPTIONS":
         return JSONResponse(content={}, status_code=200)
 
-    url = f"{UPSTREAM}/v1/{path}"
+    url = f"{UPSTREAM}/{path}"
     body = await request.body()
     
     headers = {
@@ -32,8 +29,9 @@ async def proxy(path: str, request: Request):
         if k.lower() not in ["host", "content-length", "connection"]
     }
     
+    headers["Authorization"] = f"Bearer {API_KEY}"
+    
     try:
-        # 9 second timeout to prevent Vercel's 10s hard crash
         async with httpx.AsyncClient(timeout=9.0) as client:
             req = client.build_request(
                 method=request.method,
